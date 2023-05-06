@@ -130,7 +130,7 @@ def STMUT(rng, population, tournament_size, Sf, Sp, Switch):
 	Parameters:
 	population (list): A list of Individuals, sorted from best to worse.
 	'''
-	ind1 = fitness_tournament(rng, population, tournament_size, Sf, Sp, Switch)
+	ind1 = double_tournament(rng, population, tournament_size, Sf, Sp, Switch)
 	h1 = ind1.getHead()
 	n1 = h1.getRandomNode(rng)
 	n = Node()
