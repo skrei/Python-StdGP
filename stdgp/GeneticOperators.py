@@ -65,7 +65,7 @@ def fitness_tournament(rng, population,n):
 	candidates = [rng.randint(0,len(population)-1) for i in range(n)]
 	return population[min(candidates)]
 
-def getOffspring(rng, population, tournament_size):
+def getOffspring(rng, population, tournament_size, Sf, Sp, Switch):
 	'''
 	Genetic Operator: Selects a genetic operator and returns a list with the 
 	offspring Individuals. The crossover GOs return two Individuals and the
@@ -80,9 +80,9 @@ def getOffspring(rng, population, tournament_size):
 	desc = None
 
 	if isCross:
-		desc = STXO(rng, population, tournament_size)
+		desc = STXO(rng, population, tournament_size, Sf, Sp, Switch)
 	else:
-		desc = STMUT(rng, population, tournament_size)
+		desc = STMUT(rng, population, tournament_size, Sf, Sp, Switch)
 
 	return desc
 
@@ -103,8 +103,8 @@ def STXO(rng, population, tournament_size, Sf, Sp, Switch):
 	Parameters:
 	population (list): A list of Individuals, sorted from best to worse.
 	'''
-	ind1 = fitness_tournament(rng, population, tournament_size)
-	ind2 = fitness_tournament(rng, population, tournament_size)
+	ind1 = fitness_tournament(rng, population, tournament_size, Sf, Sp, Switch)
+	ind2 = fitness_tournament(rng, population, tournament_size, Sf, Sp, Switch)
 
 	h1 = ind1.getHead()
 	h2 = ind2.getHead()
@@ -130,7 +130,7 @@ def STMUT(rng, population, tournament_size, Sf, Sp, Switch):
 	Parameters:
 	population (list): A list of Individuals, sorted from best to worse.
 	'''
-	ind1 = fitness_tournament(rng, population, tournament_size)
+	ind1 = fitness_tournament(rng, population, tournament_size, Sf, Sp, Switch)
 	h1 = ind1.getHead()
 	n1 = h1.getRandomNode(rng)
 	n = Node()
