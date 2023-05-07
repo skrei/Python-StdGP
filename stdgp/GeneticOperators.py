@@ -11,25 +11,41 @@ from .Node import Node
 
 
 def double_tournament(rng, population, n, Sf, Sp, Switch):
-    # Check the value of the switch variable
-    if Switch == False:
-        # Perform Sf tournaments and select the fittest individual from each tournament
-        fittest = [fitness_tournament(rng, population, n) for _ in range(Sf)]
-        # Select the fittest individual from all tournaments
-        best = max(fittest, key=lambda x: x.fitness)
-    else:
-        # Perform Sp tournaments and get the fittest individuals
+    # Initialize variables for the best individual, fittest individuals, and smallest individuals
+    best = None
+    fittest = []
+    smallest = []
+    
+    # Define fitness function that returns the fitness of an individual
+    def fitness(individual):
+        size = individual.size
+        return 1 / (1 + size)
+    
+    # Determine the list of individuals to use in the tournament
+    if Switch:
+        # If Switch is True, select fittest individuals from the entire population using the fitness_tournament function
         fittest = [fitness_tournament(rng, population, n) for _ in range(Sp)]
+    else:
+        # If Switch is False, select fittest individuals from a subset of the population using the fitness_tournament function
+        fittest = [fitness_tournament(rng, population, n) for _ in range(Sf)]
     
-    # Select the candidates from population that were part of fittest
-    candidates = [individual for individual in population if individual in fittest]
-    # Select the fittest individual from the candidates based on fitness
-    fittest_individual = min(candidates, key=lambda x: x.fitness)
-    # Set the best individual to be the fittest individual
-    best = fittest_individual
-    
-    # Return the best individual
-    return best
+    # Run the tournament and select the winner
+    if Switch:
+        # If Switch is True, select the individual from population that is both in fittest and has the lowest fitness
+        fittest_idx = min(range(len(population)), key=lambda idx: fitness(population[idx]) if population[idx] in fittest else float('inf'))
+        return population[fittest_idx]
+    else:
+        # If Switch is False, run a tournament among the fittest individuals and return the winner
+        for _ in range(Sp):
+            # Select a competitor from the fittest individuals at random
+            competitor = rng.choice(fittest)
+            # Calculate the size and fitness of the competitor
+            competitor_size = competitor.size
+            competitor_fitness = 1 / (1 + competitor_size)
+            # If the competitor is the best so far, update the best individual
+            if best is None or competitor_fitness > best[1]:
+                best = (competitor, competitor_fitness)
+        return best[0]
 
 
 
@@ -44,14 +60,23 @@ def getElite(population,n):
 	return population[:n]
 
 def parsimony_tournament(rng, population, n):
-    # Select `tournament_size` random individuals from the population
-    tournament = [rng.choice(population) for _ in range(n)]
+    # Define fitness function that returns the fitness of an individual
+    def fitness(individual):
+        size = individual.size
+        return 1 / (1 + size)
     
-    # Find the fittest individual in the tournament based on size and fitness
-    fittest_individual = min(tournament, key=lambda ind: (ind.fitness, ind.size))
+    # Select n competitors from the population at random
+    competitors = rng.choice(population, size=n, replace=False)
     
-    # Return the fittest individual
-    return fittest_individual
+    # Evaluate the fitness of each competitor
+    competitor_fitnesses = [fitness(competitor) for competitor in competitors]
+    
+    # Select the competitor with the highest fitness
+    best_idx = max(range(n), key=lambda idx: competitor_fitnesses[idx])
+    best = competitors[best_idx]
+    
+    return best
+
 
 def fitness_tournament(rng, population,n):
 	'''
