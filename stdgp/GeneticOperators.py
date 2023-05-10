@@ -9,97 +9,112 @@ from .Node import Node
 # Copyright ©2019-2022 J. E. Batista
 #
 
-
 def double_tournament(rng, population, n, Sf, Sp, Switch):
-    # Initialize variables for the best individual, fittest individuals, and smallest individuals
-    best = None
-    fittest = []
-    smallest = []
-    
-    # Define fitness function that returns the fitness of an individual
-    def fitness(individual):
-        size = individual.size
-        return 1 / (1 + size)
-    
-    # Determine the list of individuals to use in the tournament
-    if Switch:
-        # If Switch is True, select fittest individuals from the entire population using the fitness_tournament function
-        fittest = [fitness_tournament(rng, population, n) for _ in range(Sp)]
-    else:
-        # If Switch is False, select fittest individuals from a subset of the population using the fitness_tournament function
-        fittest = [fitness_tournament(rng, population, n) for _ in range(Sf)]
-    
-    # Run the tournament and select the winner
-    if Switch:
-        # If Switch is True, select the individual from population that is both in fittest and has the lowest fitness
-        fittest_idx = min(range(len(population)), key=lambda idx: fitness(population[idx]) if population[idx] in fittest else float('inf'))
-        return population[fittest_idx]
-    else:
-        # If Switch is False, run a tournament among the fittest individuals and return the winner
+
+    best = None    # The best individual found so far.
+    fittest = []   # The list of fittest individuals.
+    smallest = []  # The list of smallest individuals.
+
+    if Switch == False and Sf >= Sp:
+        # If `Switch` is `False`, run a fitness tournament first followed by a parsimony tournament.
+
+        # Run `Sf` fitness tournaments and save the best individual from each tournament to `fittest`.
+        for _ in range(Sf):
+            fittest.append(fitness_tournament(rng, population, n))
+
+        # Run `Sp` parsimony tournaments, where each competitor is selected from `fittest`.
         for _ in range(Sp):
-            # Select a competitor from the fittest individuals at random
+      
             competitor = rng.choice(fittest)
-            # Calculate the size and fitness of the competitor
             competitor_size = competitor.size
             competitor_fitness = 1 / (1 + competitor_size)
-            # If the competitor is the best so far, update the best individual
+            # Update `best` if the competitor has a higher parsimony measure than the current best individual.
             if best is None or competitor_fitness > best[1]:
                 best = (competitor, competitor_fitness)
+            # If the competitor has the same parsimony measure as the current best individual, randomly choose between them.
+            elif competitor_fitness == best[1]:
+                if rng.random() < 0.5:
+                    best = (competitor, competitor_fitness)
+
         return best[0]
 
+    elif Switch == True and Sf <= Sp:
+        # If `Switch` is `True`, run a parsimony tournament first followed by a fitness tournament.
+
+        # Run `Sp` parsimony tournaments and save the best individual from each tournament to `smallest`.
+        for _ in range(Sp):
+            smallest.append(parsimony_tournament(rng, population, n))
+
+        # Run `Sf` fitness tournaments, where each competitor is selected from `smallest`.
+        for _ in range(Sf):
+
+            competitor = rng.choice(smallest)
+            competitor_fitness = competitor.fitness
+            # Update `best` if the competitor has a higher fitness measure than the current best individual.
+            if best is None or competitor_fitness > best[1]:
+                best = (competitor, competitor_fitness)
+            # If the competitor has the same fitness measure as the current best individual, randomly choose between them.
+            elif competitor_fitness == best[1]:
+                if rng.random() < 0.5:
+                    best = (competitor, competitor_fitness)
+
+        return best[0]
+
+    else:
+        # If the values of `Sf` and `Sp` are incompatible with the value of `Switch`, raise an exception.
+        raise Exception('Incompatible values of Sf and Sp')
 
 
 
-def getElite(population,n):
-	'''
-	Returns the "n" best Individuals in the population.
-
-	Parameters:
-	population (list): A list of Individuals, sorted from best to worse.
-	'''
-	return population[:n]
 
 def parsimony_tournament(rng, population, n):
-    # Define fitness function that returns the fitness of an individual
-    def fitness(individual):
-        size = individual.size
-        return 1 / (1 + size)
-    
-    # Select n competitors from the population at random
-    competitors = rng.choice(population, size=n, replace=False)
-    
-    # Evaluate the fitness of each competitor
-    competitor_fitnesses = [fitness(competitor) for competitor in competitors]
-    
-    # Select the competitor with the highest fitness
-    best_idx = max(range(n), key=lambda idx: competitor_fitnesses[idx])
-    best = competitors[best_idx]
-    
-    return best
+	
+	#Selects "n" Individuals from the population and return a 
+	#single Individual - selecting the shortest one..
+	
+	best = None
+	for _ in range(n):
+		competitor = rng.choice(population)
+		competitor_size = competitor.size
+		competitor_fitness = 1 / (1 + competitor_size)
+		if best is None or competitor_fitness > best[1]:
+			best = (competitor, competitor_fitness)
+	return best[0]
 
 
 def fitness_tournament(rng, population,n):
-	'''
-	Selects "n" Individuals from the population and return a 
-	single Individual.
+	
+	#Selects "n" Individuals from the population and return a 
+	#single Individual.
 
-	Parameters:
-	population (list): A list of Individuals, sorted from best to worse.
-	'''
+	#Parameters:
+	#population (list): A list of Individuals, sorted from best to worse.
+	
 
 	candidates = [rng.randint(0,len(population)-1) for i in range(n)]
 	return population[min(candidates)]
 
-def getOffspring(rng, population, tournament_size, Sf, Sp, Switch):
-	'''
-	Genetic Operator: Selects a genetic operator and returns a list with the 
-	offspring Individuals. The crossover GOs return two Individuals and the
-	mutation GO returns one individual. Individuals over the LIMIT_DEPTH are 
-	then excluded, making it possible for this method to return an empty list.
 
-	Parameters:
-	population (list): A list of Individuals, sorted from best to worse.
-	'''
+def getElite(population,n):
+	
+	#Returns the "n" best Individuals in the population.
+
+	#Parameters:
+	#population (list): A list of Individuals, sorted from best to worse.
+	
+	return population[:n]
+
+
+def getOffspring(rng, population, tournament_size, Sf, Sp, Switch):
+	
+	#Genetic Operator: Selects a genetic operator and returns a list with the 
+	#offspring Individuals. The crossover GOs return two Individuals and the
+	#mutation GO returns one individual. Individuals over the LIMIT_DEPTH are 
+	#then excluded, making it possible for this method to return an empty list.
+
+	#Parameters:
+	#population (list): A list of Individuals, sorted from best to worse.
+	
 	isCross = rng.random()<0.5
 
 	desc = None
@@ -121,15 +136,15 @@ def discardDeep(population, limit):
 
 
 def STXO(rng, population, tournament_size, Sf, Sp, Switch):
-	'''
-	Randomly selects one node from each of two individuals; swaps the node and
-	sub-nodes; and returns the two new Individuals as the offspring.
+	
+	#Randomly selects one node from each of two individuals; swaps the node and
+	#sub-nodes; and returns the two new Individuals as the offspring.
 
-	Parameters:
-	population (list): A list of Individuals, sorted from best to worse.
-	'''
-	ind1 = double_tournament(rng, population, tournament_size, Sf, Sp, Switch)
-	ind2 = double_tournament(rng, population, tournament_size, Sf, Sp, Switch)
+	#Parameters:
+	#population (list): A list of Individuals, sorted from best to worse.
+	
+	ind1 = double_tournament(rng, population, tournament_size, Sf=Sf, Sp=Sp, Switch=Switch)
+	ind2 = double_tournament(rng, population, tournament_size, Sf=Sf, Sp=Sp, Switch=Switch)
 
 	h1 = ind1.getHead()
 	h2 = ind2.getHead()
@@ -148,14 +163,14 @@ def STXO(rng, population, tournament_size, Sf, Sp, Switch):
 
 
 def STMUT(rng, population, tournament_size, Sf, Sp, Switch):
-	'''
-	Randomly selects one node from a single individual; swaps the node with a 
-	new, node generated using Grow; and returns the new Individual as the offspring.
+	
+	#Randomly selects one node from a single individual; swaps the node with a 
+	#new, node generated using Grow; and returns the new Individual as the offspring.
 
-	Parameters:
-	population (list): A list of Individuals, sorted from best to worse.
-	'''
-	ind1 = double_tournament(rng, population, tournament_size, Sf, Sp, Switch)
+	#Parameters:
+	#population (list): A list of Individuals, sorted from best to worse.
+	
+	ind1 = double_tournament(rng, population, tournament_size, Sf=Sf, Sp=Sp, Switch=Switch)
 	h1 = ind1.getHead()
 	n1 = h1.getRandomNode(rng)
 	n = Node()
