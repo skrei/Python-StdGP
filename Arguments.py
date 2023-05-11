@@ -19,10 +19,10 @@ OPERATORS = [("+",2),("-",2),("*",2),("/",2)] # Default
 MAX_DEPTH = 6
 
 # Number of models in the population
-POPULATION_SIZE = 500
+POPULATION_SIZE = 100
 
 # Maximum number of iterations
-MAX_GENERATION = 100
+MAX_GENERATION = 25
 
 # Fraction of the dataset to be used as training (used by Main_M3GP_standalone.py)
 TRAIN_FRACTION = 0.70
@@ -115,5 +115,6 @@ if "-t" in argv:
 
 if "-rs" in argv:
 	RANDOM_STATE = int(argv[argv.index("-rs")+1])
+
 
 
