@@ -70,7 +70,7 @@ class StdGP:
 			raise ClassifierNotTrainedError("The classifier must be trained using the fit(Tr_X, Tr_Y) method before being used.")
 
 
-
+  #we changed the population_size from 500 to 100, and max_generation from 100 to 25 so we could run faster experiments
 	def __init__(self, operators=[("+",2),("-",2),("*",2),("/",2)], max_initial_depth = 6, population_size = 100, 
 		max_generation = 25, tournament_size = 5, elitism_size = 1, max_depth = 17, Sf=8, Sp=3, Switch=False, 
 		threads=1, random_state = 42, verbose = True, model_name="SimpleThresholdClassifier", fitnessType="Accuracy"):
@@ -91,6 +91,7 @@ class StdGP:
 		self.tournament_size = tournament_size
 		self.elitism_size = elitism_size
 		
+    #we added the new parameters so as here so as for all the other functions that were required to perform the double_tournament
 		self.Sf = Sf
 		self.Sp = Sp
 		self.Switch = Switch
@@ -364,6 +365,7 @@ def fitIndividuals(a):
 
 	
 	return ret 
+
 
 
 
