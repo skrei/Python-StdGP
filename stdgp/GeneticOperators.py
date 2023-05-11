@@ -10,19 +10,18 @@ from .Node import Node
 #
 
 def double_tournament(rng, population, n, Sf, Sp, Switch):
-	'''	If Switch is "False" is then fitness_tournament is called Sf number of times, and the best individual of each competition is saved to the list "fittest"; 
-	After this for a Sp number of times an individual out of the previous tournament winners is chosen and compared to the previously selected individuals, the one with the highest value of 1/(1+size(individual) ) is returned. 
+	'''	. If Switch is False, the function runs Sf fitness tournaments, followed by 1 tournament with Sp individuals chosen at random from the Sf winners, 
+        with the winner determined by the formula 1/(1+size(individual)).. 
 	
-	If the Switch is “True” then parsimony_tournament is called Sp number of times, and the best individual of each competition is saved to the list "smallest";
-	After this for a Sf number of times an individual out of the previous tournament winners is chosen and compared to the previously selected individuals - the one with the highest value of accuracy is returned.
-	
-	The second tournament of each case did not use the tournament functions because it is not intended to use every winner from the previous tournament type, but only Sp of the Sf winners.
-	So it is almost the same code, just changed accordingly.
-	If the competitor has the same fitness as the '''
+       If Switch is True, the function performs Sp parsimony tournaments followed by a single tournament with Sf individuals, selecting the winner based on the fittest accuracy measure,
+
+       An error is raised if we get incompatible values for Sf and Sp, so it is ensured that Sf is less than Sp when Switch is True and Sp is less than Sf when Switch is False.
+ '''
 	best=None
 	fittest=[]
 	smallest=[]
 	if Switch == False and Sf >= Sp:
+    # If Switch is False, the function runs Sf fitness tournaments, followed by 1 tournament with Sp individuals
 		for _ in range(Sf):
 			fittest.append(fitness_tournament(rng, population,n))
 		for _ in range(Sp):
@@ -37,6 +36,7 @@ def double_tournament(rng, population, n, Sf, Sp, Switch):
 					best = (competitor, competitor_fitness)
 		return best[0]
 	elif Switch==True and Sf <= Sp:
+    #If Switch is True, the function performs Sp parsimony tournaments followed by a single tournament with Sf individuals,
 		for _ in range(Sp):
 			smallest.append(parsimony_tournament(rng, population, n))
 		for f in range(Sf):
@@ -50,14 +50,15 @@ def double_tournament(rng, population, n, Sf, Sp, Switch):
 					best = (competitor, competitor_fitness)
 		return best[0]
 	else:
+    #An error is raised if we get incompatible Sf and Sp values
 		raise Exception('Incompatible values of Sf and Sp')
 
 
 
 def parsimony_tournament(rng, population, n):
 	'''
-	Selects "n" Individuals from the population and return a 
-	single Individual - selecting the shortest one..
+	A parsimony tournament selection strategy is implemented that selects n Individuals randomly from a given population,
+   calculates their fitness based on the size of their representation, and returns the Individual with the shortest size as the winner of the tournament
 	'''
 	best = None
 	for _ in range(n):
